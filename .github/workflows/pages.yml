@@ -22,6 +22,12 @@ jobs:
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
+
+      - name: Fetch Docs
+        env: 
+          GOOGLE_DRIVE_TOKEN: ${{secrets.GOOGLE_DRIVE_TOKEN}}
+        run: yarn docusaurus drive:sync
+          
       - name: Build website
         run: yarn build
 
