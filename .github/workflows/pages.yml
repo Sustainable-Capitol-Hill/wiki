@@ -23,14 +23,15 @@ jobs:
         run: yarn install --frozen-lockfile
 
       - name: Fetch Docs
-        env: 
+        env:
           GOOGLE_OAUTH_CREDENTIALS: ${{secrets.GOOGLE_OAUTH_CREDENTIALS}}
           DRIVE_ACCESS_TOKEN: ${{secrets.DRIVE_ACCESS_TOKEN}}
         run: |
+          mkdir docs/
           echo "$GOOGLE_OAUTH_CREDENTIALS" > credentials.json
           echo "$DRIVE_ACCESS_TOKEN" > token.json
           yarn docusaurus drive:sync
-          
+
       - name: Build website
         run: yarn build
 
