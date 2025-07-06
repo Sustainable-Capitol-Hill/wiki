@@ -25,9 +25,11 @@ jobs:
 
       - name: Fetch Docs
         env: 
-          GOOGLE_DRIVE_TOKEN: ${{secrets.GOOGLE_DRIVE_TOKEN}}
+          GOOGLE_OAUTH_CREDENTIALS: ${{secrets.GOOGLE_OAUTH_CREDENTIALS}}
+          DRIVE_ACCESS_TOKEN: ${{secrets.DRIVE_ACCESS_TOKEN}}
         run: |
-          echo "$GOOGLE_DRIVE_TOKEN" > token.json
+          echo "$GOOGLE_OAUTH_CREDENTIALS" > credentials.json
+          echo "$DRIVE_ACCESS_TOKEN" > token.json
           yarn docusaurus drive:sync
           
       - name: Build website
