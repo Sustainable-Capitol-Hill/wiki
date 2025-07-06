@@ -106,7 +106,7 @@ const config: Config = {
             from: "/books/how-to-be-a-volunteer/page/routine-shift-volunteering",
           },
           {
-            to: "/Volunteering/Farmers%20Market%20Tabling",
+            to: "/Volunteering/Farmers Market Tabling",
             from: "/books/farmers-market/page/tabling-at-the-farmers-market",
           },
         ],
