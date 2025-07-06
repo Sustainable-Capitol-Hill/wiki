@@ -4,7 +4,6 @@ import { google, drive_v3 } from "googleapis";
 import { OAuth2Client } from "google-auth-library";
 import axios from "axios";
 import { DocusaurusContext } from "@docusaurus/types"; // Import DocusaurusContext type
-import type { CLIRegistry } from "@docusaurus/types"; // Import CLIRegistry type for extendCli
 
 // --- Configuration Constants ---
 const SCOPES: string[] = ["https://www.googleapis.com/auth/drive.readonly"];
@@ -75,7 +74,7 @@ async function authenticate(
 
 /**
  * Downloads a file from Google Drive, exporting Google Workspace files as Markdown
- * using their exportLinks and the axios library.
+ * using their exportLinks and the axios library, adding front matter.
  * @param drive The Google Drive API service client.
  * @param fileId The ID of the file to download.
  * @param fileName The name of the file.
@@ -83,6 +82,8 @@ async function authenticate(
  * @param outputPath The local directory path where the file should be saved.
  * @param exportLinks A map of MIME types to export URLs provided by the Drive API.
  * @param authClient The authenticated OAuth2 client.
+ * @param docId The ID of the Google Doc (for front matter).
+ * @param lastEditedTime The last modified time of the Google Doc (for front matter).
  */
 async function downloadFile(
   drive: drive_v3.Drive,
@@ -92,6 +93,8 @@ async function downloadFile(
   outputPath: string,
   exportLinks: { [key: string]: string },
   authClient: OAuth2Client,
+  docId: string, // Added for front matter
+  lastEditedTime: string, // Added for front matter
 ): Promise<void> {
   try {
     if (fileMimeType in MIME_TYPES_EXPORT) {
@@ -125,6 +128,19 @@ async function downloadFile(
       const outputFilePath = path.join(outputPath, fileName + fileExtension);
       const writer = fs.createWriteStream(outputFilePath);
 
+      // Construct Docusaurus front matter
+      const frontMatter = `---
+drive_id: ${docId}
+last_update:
+  date: ${lastEditedTime}
+---
+
+`; // Added a newline after front matter for content separation
+
+      // Write front matter first
+      writer.write(frontMatter);
+
+      // Then pipe the content stream
       response.data.pipe(writer);
 
       return new Promise((resolve, reject) => {
@@ -194,7 +210,8 @@ async function replicateDrive(
         driveId: sharedDriveIdForQuery,
         includeItemsFromAllDrives: true,
         supportsAllDrives: true,
-        fields: "nextPageToken, files(id, name, mimeType, exportLinks)",
+        fields:
+          "nextPageToken, files(id, name, mimeType, exportLinks, modifiedTime)", // Added modifiedTime
         pageToken: pageToken,
       });
 
@@ -208,6 +225,7 @@ async function replicateDrive(
         const itemName = item.name || "Untitled"; // Provide a fallback name
         const itemId = item.id;
         const itemMimeType = item.mimeType;
+        const itemModifiedTime = item.modifiedTime; // Get modifiedTime
 
         if (itemMimeType === "application/vnd.google-apps.folder") {
           console.log(
@@ -225,6 +243,7 @@ async function replicateDrive(
         } else {
           // It's a file, check if it's a Google Doc
           if (itemMimeType === "application/vnd.google-apps.document") {
+            // Pass the exportLinks, authentication token, docId, and lastEditedTime to the download function
             await downloadFile(
               drive,
               itemId!,
@@ -233,7 +252,9 @@ async function replicateDrive(
               currentPath,
               item.exportLinks || {},
               authClient,
-            ); // itemId is guaranteed here
+              itemId!,
+              itemModifiedTime || "N/A",
+            ); // Pass itemId and itemModifiedTime
           } else {
             console.log(
               `  Skipping non-Google Doc file: '${itemName}' (MIME type: ${itemMimeType})`,
@@ -265,7 +286,7 @@ module.exports = function (context: DocusaurusContext, options: PluginOptions) {
      * Extends the Docusaurus CLI to add a custom command for syncing Google Drive Docs.
      * @param cli The Docusaurus CLI registry.
      */
-    extendCli(cli: CLIRegistry) {
+    extendCli(cli) {
       cli
         .command("drive:sync") // Define the new command
         .description("Sync Google Drive Docs to Docusaurus docs directory.")

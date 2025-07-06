@@ -43,6 +43,7 @@ const config: Config = {
         docs: {
           routeBasePath: "/",
           sidebarPath: "./sidebars.ts",
+          showLastUpdateTime: true,
           async sidebarItemsGenerator({
             defaultSidebarItemsGenerator,
             ...args
@@ -60,6 +61,7 @@ const config: Config = {
             return [home, ...sidebarWithoutHome];
           },
           editUrl: (params) => {
+            console.log(params);
             return "http://TODO";
           },
         },

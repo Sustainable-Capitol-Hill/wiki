@@ -1,3 +1,9 @@
+---
+drive_id: 1-Uzy-zuJ8hnD-2kDpL-OEVtOg0yIq47Khj0biZBSojU
+last_update:
+  date: 2025-07-05T06:13:12.324Z
+---
+
 *This is a guide for existing volunteers, describing how to welcome and onboard volunteers who are coming in for the first time. No need to take this prescriptively, but it's a good starting point for the conversations you can have\!*
 
 #### At the start of the shift

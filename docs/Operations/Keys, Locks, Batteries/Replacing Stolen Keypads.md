@@ -1,3 +1,9 @@
+---
+drive_id: 1Of9cV2t4dU-QseUfZKg4pbYQDBAmaMB40G9jKCcIyJo
+last_update:
+  date: 2025-07-05T06:37:07.155Z
+---
+
 # Replacing Stolen Keypads
 
 August (a.k.a. Yale), the keypad manufacturer, [will replace stolen keypads for free](https://support.august.com/what-happens-if-my-august-keypad-gets-stolen-Bk3kDUyCOG). They say they charge shipping, but haven't charged us in the past.

@@ -1,3 +1,9 @@
+---
+drive_id: 1KL1tPeRsK4WMYUIl0dawSe9FE_F_i7ZZnkgVCxWeUzM
+last_update:
+  date: 2025-07-05T06:21:00.684Z
+---
+
 # Routine shift volunteering
 
 This page outlines what's entailed in being a frequent, reliable, and active volunteer with the tool library: the benefits and expectations, and how to take on new roles or less responsibility over time as your life and interests change.

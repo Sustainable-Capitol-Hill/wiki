@@ -1,3 +1,9 @@
+---
+drive_id: 1Q9rf8UzyTGouLdkBosWfu4-YNxQhPDqCts0Vgoz3KTs
+last_update:
+  date: 2025-07-05T06:32:59.822Z
+---
+
 # SawStop Brake Triggered Procedure
 
 When [the SawStop brake cartridge is triggered](https://www.youtube.com/watch?v=Ibp2Gy2CFrY), please:
