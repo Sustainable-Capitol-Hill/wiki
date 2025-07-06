@@ -5,6 +5,7 @@ import type { Config } from "@docusaurus/types";
 import type * as Preset from "@docusaurus/preset-classic";
 import matter from "gray-matter";
 
+import { Options as ClientRedirectOptions } from "@docusaurus/plugin-client-redirects";
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
 const config: Config = {
@@ -91,6 +92,25 @@ const config: Config = {
         nestedFolderId: "1KGbXzCh5qJcxr-W7xaj_RWu4IC9XUqf1",
         outputDir: "docs",
       },
+    ],
+    [
+      "@docusaurus/plugin-client-redirects",
+      {
+        redirects: [
+          {
+            to: "/Volunteering/First-Time Volunteers",
+            from: "/books/how-to-be-a-volunteer/page/first-time-volunteering",
+          },
+          {
+            to: "/Volunteering/Routine Shift Volunteering",
+            from: "/books/how-to-be-a-volunteer/page/routine-shift-volunteering",
+          },
+          {
+            to: "/Volunteering/Farmers%20Market%20Tabling",
+            from: "/books/farmers-market/page/tabling-at-the-farmers-market",
+          },
+        ],
+      } satisfies ClientRedirectOptions,
     ],
   ],
 
