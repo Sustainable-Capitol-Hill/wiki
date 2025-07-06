@@ -85,6 +85,9 @@ const config: Config = {
   ],
 
   themeConfig: {
+    colorMode: {
+      respectPrefersColorScheme: true,
+    },
     navbar: {
       title: "Sustainable Capitol Hill Wiki",
       logo: {
