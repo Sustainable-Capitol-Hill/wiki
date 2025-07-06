@@ -1,7 +1,9 @@
 import { themes as prismThemes } from "prism-react-renderer";
+import * as fs from "fs";
 import * as path from "path";
 import type { Config } from "@docusaurus/types";
 import type * as Preset from "@docusaurus/preset-classic";
+import matter from "gray-matter";
 
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
@@ -60,9 +62,15 @@ const config: Config = {
 
             return [home, ...sidebarWithoutHome];
           },
-          editUrl: (params) => {
-            console.log(params);
-            return "http://TODO";
+          editUrl: ({ versionDocsDirPath, docPath }) => {
+            const file = fs.readFileSync(`${versionDocsDirPath}/${docPath}`);
+            const data = matter(file);
+            const driveId = data.data.drive_id;
+            if (driveId !== undefined) {
+              return `https://docs.google.com/document/d/${driveId}/edit`;
+            } else {
+              return undefined;
+            }
           },
         },
         blog: false,

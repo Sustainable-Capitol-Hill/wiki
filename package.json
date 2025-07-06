@@ -23,6 +23,7 @@
     "fs-extra": "^11.3.0",
     "google-auth-library": "^10.1.0",
     "googleapis": "^150.0.1",
+    "gray-matter": "^4.0.3",
     "prism-react-renderer": "^2.3.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
