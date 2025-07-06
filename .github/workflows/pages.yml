@@ -26,7 +26,9 @@ jobs:
       - name: Fetch Docs
         env: 
           GOOGLE_DRIVE_TOKEN: ${{secrets.GOOGLE_DRIVE_TOKEN}}
-        run: yarn docusaurus drive:sync
+        run: |
+          echo "$GOOGLE_DRIVE_TOKEN" > token.json
+          yarn docusaurus drive:sync
           
       - name: Build website
         run: yarn build
