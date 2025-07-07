@@ -9,6 +9,8 @@ import { DocusaurusContext } from "@docusaurus/types"; // Import DocusaurusConte
 const SCOPES: string[] = ["https://www.googleapis.com/auth/drive.readonly"];
 const TOKEN_PATH: string = "token.json"; // Relative to Docusaurus project root
 const CREDENTIALS_PATH: string = "credentials.json"; // Relative to Docusaurus project root
+const DRIVE_RE =
+  /\[(.*)\].*\(https:\/\/docs.google.com\/document\/d\/(.*)\/edit.*\)/g;
 
 interface MimeExportInfo {
   mimeType: string;
@@ -122,14 +124,19 @@ async function downloadFile(
         headers: {
           Authorization: `Bearer ${authClient.credentials.access_token}`,
         },
-        responseType: "stream", // Important for handling large files efficiently
+        responseType: "text",
       });
 
       const outputFilePath = path.join(outputPath, fileName + fileExtension);
       const writer = fs.createWriteStream(outputFilePath);
 
+      // special case: root doc should live at root slug
+      const slug =
+        docId === "1aXYn5V-7basBfG-e5mbrCcjI4fAVCzUXx-KGl9mMw5o" ? "" : docId;
+
       // Construct Docusaurus front matter
       const frontMatter = `---
+slug: /${slug}
 drive_id: ${docId}
 last_update:
   date: ${lastEditedTime}
@@ -137,24 +144,20 @@ last_update:
 
 `; // Added a newline after front matter for content separation
 
-      // Write front matter first
-      writer.write(frontMatter);
+      // replace google docs links with internal links
+      const body = (response.data as string).replaceAll(DRIVE_RE, "[$1](/$2)");
 
-      // Then pipe the content stream
-      response.data.pipe(writer);
-
-      return new Promise((resolve, reject) => {
-        writer.on("finish", () => {
-          console.log(
-            `  Successfully downloaded/exported '${fileName}${fileExtension}'.`,
-          );
-          resolve();
-        });
-        writer.on("error", (err: Error) => {
-          console.error(`Error writing file '${outputFilePath}':`, err);
-          reject(err);
-        });
-      });
+      try {
+        // Write front matter first
+        writer.write(frontMatter);
+        writer.write(body);
+        console.log(
+          `  Successfully downloaded/exported '${fileName}${fileExtension}'.`,
+        );
+      } catch (e) {
+        console.error(`Error writing file '${outputFilePath}':`, e);
+        throw e;
+      }
     } else {
       // This block should ideally not be reached due to prior filtering in replicateDrive
       console.log(

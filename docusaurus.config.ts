@@ -18,7 +18,7 @@ const config: Config = {
   },
 
   // Set the production url of your site here
-  url: "https://your-docusaurus-site.example.com",
+  url: "https://wiki.sustainablecapitolhill.org",
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
   baseUrl: "/",
@@ -98,15 +98,15 @@ const config: Config = {
       {
         redirects: [
           {
-            to: "/Volunteering/First-Time Volunteers",
+            to: "/1VSNe61yDN7176AKB5RPw7cRh3wYxhAsNYk0rVffjZGY",
             from: "/books/how-to-be-a-volunteer/page/first-time-volunteering",
           },
           {
-            to: "/Volunteering/Routine Shift Volunteering",
+            to: "/1KL1tPeRsK4WMYUIl0dawSe9FE_F_i7ZZnkgVCxWeUzM",
             from: "/books/how-to-be-a-volunteer/page/routine-shift-volunteering",
           },
           {
-            to: "/Volunteering/Farmers Market Tabling",
+            to: "/1wW-6WolrfQdf8mvJdm-k-XbCvG-72I-U9P83BG0_AjM",
             from: "/books/farmers-market/page/tabling-at-the-farmers-market",
           },
         ],
