@@ -1,16 +1,16 @@
 import * as path from "path";
+import { JSDOM } from "jsdom";
+
 import * as fs from "fs-extra"; // Using fs-extra for recursive mkdir and better file ops
 import { google, drive_v3 } from "googleapis";
 import { OAuth2Client } from "google-auth-library";
 import axios from "axios";
-import { DocusaurusContext } from "@docusaurus/types"; // Import DocusaurusContext type
+import { DocusaurusContext, Plugin } from "@docusaurus/types"; // Import DocusaurusContext type
 
 // --- Configuration Constants ---
 const SCOPES: string[] = ["https://www.googleapis.com/auth/drive.readonly"];
 const TOKEN_PATH: string = "token.json"; // Relative to Docusaurus project root
 const CREDENTIALS_PATH: string = "credentials.json"; // Relative to Docusaurus project root
-const DRIVE_RE =
-  /\[(.*)\].*\(https:\/\/docs.google.com\/document\/d\/(.*)\/edit.*\)/g;
 
 interface MimeExportInfo {
   mimeType: string;
@@ -124,7 +124,7 @@ async function downloadFile(
         headers: {
           Authorization: `Bearer ${authClient.credentials.access_token}`,
         },
-        responseType: "text",
+        responseType: "stream", // Important for handling large files efficiently
       });
 
       const outputFilePath = path.join(outputPath, fileName + fileExtension);
@@ -144,20 +144,24 @@ last_update:
 
 `; // Added a newline after front matter for content separation
 
-      // replace google docs links with internal links
-      const body = (response.data as string).replaceAll(DRIVE_RE, "[$1](/$2)");
+      // Write front matter first
+      writer.write(frontMatter);
 
-      try {
-        // Write front matter first
-        writer.write(frontMatter);
-        writer.write(body);
-        console.log(
-          `  Successfully downloaded/exported '${fileName}${fileExtension}'.`,
-        );
-      } catch (e) {
-        console.error(`Error writing file '${outputFilePath}':`, e);
-        throw e;
-      }
+      // Then pipe the content stream
+      response.data.pipe(writer);
+
+      return new Promise((resolve, reject) => {
+        writer.on("finish", () => {
+          console.log(
+            `  Successfully downloaded/exported '${fileName}${fileExtension}'.`,
+          );
+          resolve();
+        });
+        writer.on("error", (err: Error) => {
+          console.error(`Error writing file '${outputFilePath}':`, err);
+          reject(err);
+        });
+      });
     } else {
       // This block should ideally not be reached due to prior filtering in replicateDrive
       console.log(
@@ -276,14 +280,58 @@ async function replicateDrive(
   } while (pageToken);
 }
 
+const DRIVE_RE = /^https:\/\/docs.google.com\/document\/d\/(.*)\/edit/;
+
 /**
  * Docusaurus Plugin Entry Point
  * @param context The Docusaurus context object.
  * @param options Plugin options defined in docusaurus.config.js.
  */
-module.exports = function (context: DocusaurusContext, options: PluginOptions) {
+module.exports = function (
+  context: DocusaurusContext,
+  options: PluginOptions,
+): Plugin<void> {
   return {
     name: "docusaurus-plugin-google-drive-docs",
+    async postBuild(props) {
+      /*
+       * Re-write all Google Docs links that we are hosting on the wiki so they
+       * send the user to the wiki rather than editing the doc directly.
+       */
+
+      for (const routePath of props.routesPaths) {
+        const fsPath = `${props.outDir}${routePath}/index.html`;
+        if (!(await fs.exists(fsPath))) {
+          continue;
+        }
+
+        const dom = await JSDOM.fromFile(fsPath);
+
+        const docsLinks: NodeListOf<HTMLAnchorElement> =
+          // match on docs links EXCEPT for "edit this page" links
+          dom.window.document.querySelectorAll(
+            "a[href^='https://docs.google.com/document']:not(.theme-edit-this-page)",
+          );
+
+        docsLinks.forEach((link) => {
+          const match = link.href.match(DRIVE_RE);
+          if (match === null || match.length < 2) {
+            // don't rewrite non-docs links
+            return;
+          }
+          const docId = match[1];
+          if (!props.routesPaths.includes(`/${docId}`)) {
+            // don't rewrite links that aren't in the wiki
+            return;
+          }
+          link.href = `/${docId}`;
+          link.target = "";
+          link.rel = "";
+        });
+
+        await fs.writeFile(fsPath, dom.serialize());
+      }
+    },
 
     /**
      * Extends the Docusaurus CLI to add a custom command for syncing Google Drive Docs.
