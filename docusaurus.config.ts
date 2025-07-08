@@ -10,7 +10,7 @@ import { Options as ClientRedirectOptions } from "@docusaurus/plugin-client-redi
 
 const config: Config = {
   title: "Sustainable Capitol Hill Wiki",
-  favicon: "img/favicon.ico",
+  favicon: "img/favicon.jpg",
 
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
   future: {
