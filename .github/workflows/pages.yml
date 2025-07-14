@@ -16,13 +16,17 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: yarn
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: |
+          apt update
+          DEBIAN_FRONTEND=noninteractive apt install -y tzdata
+          yarn install --frozen-lockfile
 
       - name: Fetch Docs
         env:
@@ -35,6 +39,8 @@ jobs:
           yarn docusaurus drive:sync
 
       - name: Build website
+        env:
+          TZ: "America/Los_Angeles"
         run: yarn build
 
       - name: Upload Build Artifact
