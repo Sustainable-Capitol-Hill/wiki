@@ -1,0 +1,14 @@
+diff --git a/node_modules/@easyops-cn/docusaurus-search-local/dist/client/client/theme/SearchBar/SearchBar.jsx b/node_modules/@easyops-cn/docusaurus-search-local/dist/client/client/theme/SearchBar/SearchBar.jsx
+index fbb9fa8..634a2c0 100644
+--- a/node_modules/@easyops-cn/docusaurus-search-local/dist/client/client/theme/SearchBar/SearchBar.jsx
++++ b/node_modules/@easyops-cn/docusaurus-search-local/dist/client/client/theme/SearchBar/SearchBar.jsx
+@@ -276,7 +276,8 @@ export default function SearchBar({ handleSearchBarToggle, }) {
+         loadIndex();
+         setFocused(true);
+         handleSearchBarToggle?.(true);
+-    }, [handleSearchBarToggle, loadIndex]);
++        searchBarRef.current?.select()
++    }, [handleSearchBarToggle, loadIndex, searchBarRef]);
+     const onInputBlur = useCallback(() => {
+         setFocused(false);
+         handleSearchBarToggle?.(false);
