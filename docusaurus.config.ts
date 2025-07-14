@@ -6,6 +6,7 @@ import type * as Preset from "@docusaurus/preset-classic";
 import matter from "gray-matter";
 
 import { Options as ClientRedirectOptions } from "@docusaurus/plugin-client-redirects";
+import { PluginOptions } from "@easyops-cn/docusaurus-search-local";
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
 const config: Config = {
@@ -121,7 +122,6 @@ const config: Config = {
   themes: [
     [
       require.resolve("@easyops-cn/docusaurus-search-local"),
-      /** @type {import("@easyops-cn/docusaurus-search-local").PluginOptions} */
       {
         // ... Your options.
         // `hashed` is recommended as long-term-cache of index file is possible.
@@ -134,7 +134,7 @@ const config: Config = {
 
         // If you're using `noIndex: true`, set `forceIgnoreNoIndex` to enable local index:
         // forceIgnoreNoIndex: true,
-      },
+      } satisfies PluginOptions,
     ],
   ],
 
