@@ -98,6 +98,10 @@ const config: Config = {
       {
         redirects: [
           {
+            to: "/1-Uzy-zuJ8hnD-2kDpL-OEVtOg0yIq47Khj0biZBSojU",
+            from: "/books/how-to-be-a-volunteer/page/how-to-onboard-a-first-time-volunteer",
+          },
+          {
             to: "/1VSNe61yDN7176AKB5RPw7cRh3wYxhAsNYk0rVffjZGY",
             from: "/books/how-to-be-a-volunteer/page/first-time-volunteering",
           },
