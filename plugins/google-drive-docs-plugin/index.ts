@@ -134,12 +134,14 @@ async function downloadFile(
       const slug =
         docId === "1aXYn5V-7basBfG-e5mbrCcjI4fAVCzUXx-KGl9mMw5o" ? "" : docId;
 
+      const lastEditDate = new Date(lastEditedTime);
+
       // Construct Docusaurus front matter
       const frontMatter = `---
 slug: /${slug}
 drive_id: ${docId}
 last_update:
-  date: ${lastEditedTime}
+  date: ${new Intl.DateTimeFormat("en-US", { timeZone: "America/Los_Angeles" }).format(lastEditDate)}
 ---
 
 `; // Added a newline after front matter for content separation
