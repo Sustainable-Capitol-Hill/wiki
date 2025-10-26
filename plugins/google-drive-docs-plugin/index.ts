@@ -8,7 +8,6 @@ import axios from "axios";
 import { DocusaurusContext, Plugin } from "@docusaurus/types"; // Import DocusaurusContext type
 
 // --- Configuration Constants ---
-const SCOPES: string[] = ["https://www.googleapis.com/auth/drive.readonly"];
 const TOKEN_PATH: string = "token.json"; // Relative to Docusaurus project root
 const CREDENTIALS_PATH: string = "credentials.json"; // Relative to Docusaurus project root
 
@@ -88,8 +87,6 @@ async function authenticate(
  * @param lastEditedTime The last modified time of the Google Doc (for front matter).
  */
 async function downloadFile(
-  drive: drive_v3.Drive,
-  fileId: string,
   fileName: string,
   fileMimeType: string,
   outputPath: string,
@@ -254,8 +251,6 @@ async function replicateDrive(
           if (itemMimeType === "application/vnd.google-apps.document") {
             // Pass the exportLinks, authentication token, docId, and lastEditedTime to the download function
             await downloadFile(
-              drive,
-              itemId!,
               itemName,
               itemMimeType,
               currentPath,
