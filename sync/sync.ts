@@ -1,11 +1,13 @@
 import dotenv from 'dotenv';
 import chalk from 'chalk';
 import ora from 'ora';
+import https from 'https';
 import * as fs from 'fs';
 import * as path from 'path';
 import { DriveClient } from './drive-client';
 import type { DriveFile } from './drive-client';
 import { convertDocToMarkdown } from './doc-converter';
+import { getAuthClient } from './auth';
 import {
   loadState,
   saveState,
@@ -170,7 +172,42 @@ export async function sync(options: SyncOptions = {}) {
 
       if (!dryRun) {
         // Export and convert doc
-        const html = await driveClient.exportDocAsHtml(file.id);
+        let html: string;
+        try {
+          html = await driveClient.exportDocAsHtml(file.id);
+        } catch (error: any) {
+          // Check if the error message contains "too large" - googleapis may format errors differently
+          const isTooLargeError = 
+            error?.message?.includes('too large to be exported') ||
+            error?.response?.data?.error?.errors?.[0]?.reason === 'exportSizeLimitExceeded';
+          
+          if (isTooLargeError && file.exportLinks?.['text/html']) {
+            console.log(`    └─ File too large for standard export, trying exportLink...`);
+            
+            const authClient = await getAuthClient();
+            const accessToken = await authClient.getAccessToken();
+            
+            // Download via exportLink using https
+            html = await new Promise<string>((resolve, reject) => {
+              https.get(file.exportLinks!['text/html'], {
+                headers: {
+                  'Authorization': `Bearer ${accessToken.token}`,
+                },
+              }, (res) => {
+                let data = '';
+                res.on('data', (chunk) => data += chunk);
+                res.on('end', () => resolve(data));
+                res.on('error', reject);
+              }).on('error', reject);
+            });
+            
+            console.log(`    └─ Successfully downloaded via exportLink`);
+          } else if (isTooLargeError) {
+            throw new Error('File too large to export and no exportLink available');
+          } else {
+            throw error;
+          }
+        }
         
         const author = file.owners?.[0]?.displayName || file.owners?.[0]?.emailAddress;
         

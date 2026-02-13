@@ -12,6 +12,7 @@ export interface DriveFile {
   modifiedTime: string;
   parents?: string[];
   owners?: Array<{ displayName?: string; emailAddress?: string }>;
+  exportLinks?: { [mimeType: string]: string };
 }
 
 export class DriveClient {
@@ -49,7 +50,7 @@ export class DriveClient {
         try {
           const response = await this.drive.files.list({
             q: `'${currentFolderId}' in parents and trashed=false`,
-            fields: 'nextPageToken, files(id, name, mimeType, modifiedTime, parents, owners)',
+            fields: 'nextPageToken, files(id, name, mimeType, modifiedTime, parents, owners, exportLinks)',
             pageSize: 1000,
             pageToken,
             supportsAllDrives: true,
@@ -69,6 +70,7 @@ export class DriveClient {
               modifiedTime: file.modifiedTime!,
               parents: file.parents ?? undefined,
               owners: file.owners as any,
+              exportLinks: file.exportLinks as any,
             };
 
             allFiles.push(driveFile);
@@ -148,7 +150,7 @@ export class DriveClient {
 
     const response = await this.drive.files.get({
       fileId,
-      fields: 'id, name, mimeType, modifiedTime, parents, owners',
+      fields: 'id, name, mimeType, modifiedTime, parents, owners, exportLinks',
       supportsAllDrives: true,
     });
 
@@ -161,6 +163,7 @@ export class DriveClient {
       modifiedTime: file.modifiedTime!,
       parents: file.parents ?? undefined,
       owners: file.owners as any,
+      exportLinks: file.exportLinks as any,
     };
   }
 
