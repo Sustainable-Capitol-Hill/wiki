@@ -1,9 +1,9 @@
 name: Sync and Deploy Wiki
 
 on:
-  # Run every 6 hours
+  # Run every 10 minutes
   schedule:
-    - cron: "0 */6 * * *"
+    - cron: "*/10 * * * *"
 
   # Allow manual trigger
   workflow_dispatch:
@@ -67,9 +67,9 @@ jobs:
             public/images/
             sync-state.json
             folder-metadata.json
-          key: drive-sync-${{ github.run_number }}
+          key: drive-sync-v2-${{ github.run_number }}
           restore-keys: |
-            drive-sync-
+            drive-sync-v2-
 
       - name: Sync from Google Drive
         env:
