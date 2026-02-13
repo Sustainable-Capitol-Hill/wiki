@@ -144,6 +144,18 @@ Your wiki will now:
 - ✅ Auto-deploy to: `https://{your-username}.github.io/{repo-name}/`
 - ✅ Update automatically when you push code changes
 - ✅ Can be manually triggered anytime via Actions tab
+- ✅ Uses incremental sync - only downloads changed files (cached between runs)
+
+### How Caching Works
+
+The GitHub Actions workflow caches synced content between runs:
+- **Cached files**: `src/content/docs/`, `public/images/`, `sync-state.json`, `folder-metadata.json`
+- **Benefits**: 
+  - Faster workflow runs (only downloads changed/new files)
+  - Reduced API calls to Google Drive
+  - Lower bandwidth usage
+- **First run**: Downloads all files (~1-3 minutes depending on content size)
+- **Subsequent runs**: Only syncs changes (~10-30 seconds typically)
 
 ### Manual Deployment Trigger
 
@@ -176,6 +188,12 @@ The manual trigger (workflow_dispatch) always works, regardless of the schedule 
 - Check the **Actions** tab for workflow runs - look for errors
 - Verify GitHub Pages is enabled: **Settings** → **Pages** → Source: "GitHub Actions"
 - Workflow must complete successfully (green checkmark)
+
+**Need to force a full re-download?**
+- Go to **Actions** tab → **Caches** (in left sidebar)
+- Delete caches starting with `drive-sync-`
+- Next workflow run will download all files fresh
+- Or temporarily add `pnpm sync:full` in the workflow file
 
 **Build fails during sync:**
 - Check that `GOOGLE_DRIVE_FOLDER_ID` secret matches your folder
