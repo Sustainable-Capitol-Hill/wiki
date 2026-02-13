@@ -67,7 +67,9 @@ jobs:
             public/images/
             sync-state.json
             folder-metadata.json
-          key: drive-sync-v1
+          key: drive-sync-${{ github.run_number }}
+          restore-keys: |
+            drive-sync-
 
       - name: Sync from Google Drive
         env:
