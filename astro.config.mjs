@@ -9,6 +9,7 @@ export default defineConfig({
   redirects: generateRedirects(),
   integrations: [
     starlight({
+      favicon: "favicon.png",
       title: "Sustainable Capitol Hill Wiki",
       titleDelimiter: "|",
       logo: {
