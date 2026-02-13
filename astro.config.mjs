@@ -10,6 +10,7 @@ export default defineConfig({
   integrations: [
     starlight({
       title: "Sustainable Capitol Hill Wiki",
+      titleDelimiter: "|",
       logo: {
         light: "./src/assets/blackbird.png",
         dark: "./src/assets/whitebird.png",

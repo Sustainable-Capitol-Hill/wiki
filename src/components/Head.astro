@@ -1,8 +1,15 @@
 ---
-// Custom Head component to add Google Analytics
+// Custom Head component to add Google Analytics and preserve Starlight's default Head
+import type { Props } from '@astrojs/starlight/props';
+import StarlightHead from '@astrojs/starlight/components/Head.astro';
+
 const googleAnalyticsId = import.meta.env.PUBLIC_GOOGLE_ANALYTICS_ID;
 ---
 
+<!-- Include Starlight's default Head component with title support -->
+<StarlightHead {...Astro.props}><slot /></StarlightHead>
+
+<!-- Add Google Analytics -->
 {googleAnalyticsId && (
   <>
     <!-- Google tag (gtag.js) -->
