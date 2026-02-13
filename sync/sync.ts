@@ -114,7 +114,18 @@ export async function sync(options: SyncOptions = {}) {
 
   if (totalChanges === 0) {
     console.log(chalk.green('\n✨ Everything is up to date!'));
+    
+    // Set GitHub Actions output if running in CI
+    if (process.env.GITHUB_OUTPUT) {
+      fs.appendFileSync(process.env.GITHUB_OUTPUT, 'has_changes=false\n');
+    }
+    
     return;
+  }
+  
+  // Set GitHub Actions output if running in CI
+  if (process.env.GITHUB_OUTPUT) {
+    fs.appendFileSync(process.env.GITHUB_OUTPUT, 'has_changes=true\n');
   }
 
   // Clear docs directory if full sync
