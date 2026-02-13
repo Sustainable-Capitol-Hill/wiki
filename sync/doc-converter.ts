@@ -338,13 +338,22 @@ export async function convertMarkdownDoc(
   let imageIndex = 0;
   while ((match = imageRefPattern.exec(markdown)) !== null) {
     const imageNum = match[1];
-    const ext = match[2];
+    const mdExt = match[2]; // Extension from markdown
     const base64Data = match[3];
     
     // Use HTML image if available (higher quality), otherwise use markdown image
-    const dataUrl = htmlImages[imageIndex] && htmlImages[imageIndex].startsWith('data:')
-      ? htmlImages[imageIndex]
-      : `data:image/${ext};base64,${base64Data}`;
+    let dataUrl: string;
+    let ext: string;
+    
+    if (htmlImages[imageIndex] && htmlImages[imageIndex].startsWith('data:')) {
+      dataUrl = htmlImages[imageIndex];
+      // Extract extension from HTML data URL
+      const htmlExtMatch = dataUrl.match(/^data:image\/(\w+);base64,/);
+      ext = htmlExtMatch ? htmlExtMatch[1] : mdExt;
+    } else {
+      dataUrl = `data:image/${mdExt};base64,${base64Data}`;
+      ext = mdExt;
+    }
     
     try {
       // Save the image using the same index from the markdown
