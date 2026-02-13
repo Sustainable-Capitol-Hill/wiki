@@ -59,6 +59,7 @@ All commands are run from the root of the project, from a terminal:
 | `pnpm sync`               | Sync changed files from Google Drive             |
 | `pnpm sync:full`          | Full sync, re-download all files                 |
 | `pnpm sync:dry`           | Preview what would be synced                     |
+| `DEBUG=true pnpm sync`    | Run sync with detailed debug logging             |
 
 ## 📚 Google Drive Sync Setup
 

@@ -5,6 +5,15 @@ import * as fs from 'fs';
 const GOOGLE_DOC_MIME_TYPE = 'application/vnd.google-apps.document';
 const FOLDER_MIME_TYPE = 'application/vnd.google-apps.folder';
 
+// Enable debug logging via environment variable
+const DEBUG = process.env.DEBUG === 'true' || process.env.DEBUG === '1';
+
+function debug(...args: any[]) {
+  if (DEBUG) {
+    console.log('[DEBUG]', ...args);
+  }
+}
+
 export interface DriveFile {
   id: string;
   name: string;
@@ -37,12 +46,12 @@ export class DriveClient {
     const allFiles: DriveFile[] = [];
     const foldersToProcess: string[] = [folderId];
 
-    console.log(`[DEBUG] Starting recursive scan from folder: ${folderId}`);
+    debug(`Starting recursive scan from folder: ${folderId}`);
 
     while (foldersToProcess.length > 0) {
       const currentFolderId = foldersToProcess.shift()!;
       
-      console.log(`[DEBUG] Scanning folder: ${currentFolderId}`);
+      debug(`Scanning folder: ${currentFolderId}`);
       
       let pageToken: string | undefined;
       
@@ -58,10 +67,10 @@ export class DriveClient {
           });
 
           const files = response.data.files || [];
-          console.log(`[DEBUG] Found ${files.length} files in folder ${currentFolderId}`);
+          debug(`Found ${files.length} files in folder ${currentFolderId}`);
           
           for (const file of files) {
-            console.log(`[DEBUG] - ${file.name} (${file.mimeType})`);
+            debug(`- ${file.name} (${file.mimeType})`);
             
             const driveFile: DriveFile = {
               id: file.id!,
@@ -93,7 +102,7 @@ export class DriveClient {
       } while (pageToken);
     }
 
-    console.log(`[DEBUG] Total files found: ${allFiles.length}`);
+    debug(`Total files found: ${allFiles.length}`);
     return allFiles;
   }
 
