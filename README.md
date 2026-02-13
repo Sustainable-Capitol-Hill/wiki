@@ -149,13 +149,17 @@ Your wiki will now:
 ### How Caching Works
 
 The GitHub Actions workflow caches synced content between runs:
+- **Cache key**: `drive-sync-v1` (stable, reused across all runs)
 - **Cached files**: `src/content/docs/`, `public/images/`, `sync-state.json`, `folder-metadata.json`
+- **Storage**: Single cache entry (~50-500MB typical), automatically updated after each successful run
 - **Benefits**: 
   - Faster workflow runs (only downloads changed/new files)
   - Reduced API calls to Google Drive
   - Lower bandwidth usage
+  - No cache bloat (single entry vs dozens)
 - **First run**: Downloads all files (~1-3 minutes depending on content size)
 - **Subsequent runs**: Only syncs changes (~10-30 seconds typically)
+- **Cache invalidation**: If needed, bump version in workflow file (`v1` → `v2`)
 
 ### Manual Deployment Trigger
 
