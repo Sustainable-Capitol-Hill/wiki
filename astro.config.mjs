@@ -14,16 +14,11 @@ export default defineConfig({
         light: "./src/assets/blackbird.png",
         dark: "./src/assets/whitebird.png",
       },
-      social: [
-        {
-          icon: "github",
-          label: "GitHub",
-          href: "https://github.com/withastro/starlight",
-        },
-      ],
+      social: [],
       sidebar: generateSidebar(),
       components: {
-        Footer: './src/components/Footer.astro',
+        Footer: "./src/components/Footer.astro",
+        Head: "./src/components/Head.astro",
       },
     }),
   ],

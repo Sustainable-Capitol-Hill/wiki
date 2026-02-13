@@ -12,6 +12,9 @@ A wiki powered by Astro Starlight that automatically syncs with Google Drive.
 - Downloads and optimizes images
 - Incremental sync (only updates changed files)
 - Simple manual sync workflow (no hosting required)
+- Google Analytics integration (optional)
+- "Edit in Google Docs" link on every page
+- Automatic redirects from old Drive file IDs
 
 ## 🚀 Project Structure
 
