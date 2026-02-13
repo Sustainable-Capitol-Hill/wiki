@@ -18,19 +18,31 @@ interface TokenData {
 }
 
 /**
- * Creates and returns an authorized OAuth2 client
+ * Creates a service account client for automated/CI environments
  */
-export async function getAuthClient() {
-  const clientId = process.env.GOOGLE_CLIENT_ID;
-  const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-  const redirectUri = process.env.GOOGLE_REDIRECT_URI;
+async function createServiceAccountClient() {
+  console.log('🔐 Using service account authentication');
+  
+  const credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON!);
+  
+  const auth = new google.auth.GoogleAuth({
+    credentials,
+    scopes: ['https://www.googleapis.com/auth/drive.readonly'],
+  });
+  
+  return await auth.getClient();
+}
 
-  if (!clientId || !clientSecret || !redirectUri) {
-    throw new Error(
-      'Missing Google OAuth credentials. Please set GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, and GOOGLE_REDIRECT_URI in .env file.'
-    );
-  }
-
+/**
+ * Creates an OAuth2 client for local development
+ */
+async function createOAuthClient(
+  clientId: string,
+  clientSecret: string,
+  redirectUri: string
+) {
+  console.log('🔐 Using OAuth authentication');
+  
   const oauth2Client = new google.auth.OAuth2(
     clientId,
     clientSecret,
@@ -66,11 +78,44 @@ export async function getAuthClient() {
 }
 
 /**
+ * Creates and returns an authorized client (auto-detects auth method)
+ * 
+ * Priority:
+ * 1. Service account (if GOOGLE_SERVICE_ACCOUNT_JSON is set) - for CI/CD
+ * 2. OAuth (if GOOGLE_CLIENT_ID etc are set) - for local development
+ */
+export async function getAuthClient() {
+  // Priority 1: Service account (CI/CD)
+  if (process.env.GOOGLE_SERVICE_ACCOUNT_JSON) {
+    return await createServiceAccountClient();
+  }
+  
+  // Priority 2: OAuth (local development)
+  const clientId = process.env.GOOGLE_CLIENT_ID;
+  const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+  const redirectUri = process.env.GOOGLE_REDIRECT_URI;
+
+  if (clientId && clientSecret && redirectUri) {
+    return await createOAuthClient(clientId, clientSecret, redirectUri);
+  }
+  
+  throw new Error(
+    'No authentication credentials found.\n\n' +
+    'Please set either:\n' +
+    '  - GOOGLE_SERVICE_ACCOUNT_JSON (for CI/CD)\n' +
+    '  OR\n' +
+    '  - GOOGLE_CLIENT_ID + GOOGLE_CLIENT_SECRET + GOOGLE_REDIRECT_URI (for local dev)\n\n' +
+    'See .env.example for details.'
+  );
+}
+
+/**
  * Performs OAuth flow to get new credentials
  */
-async function authenticateUser(oauth2Client: any) {
+async function authenticateUser(oauth2Client: InstanceType<typeof google.auth.OAuth2>) {
   const authUrl = oauth2Client.generateAuthUrl({
     access_type: 'offline',
+    prompt: 'consent', // Force consent to get refresh_token
     scope: [
       'https://www.googleapis.com/auth/drive.readonly',
     ],
@@ -90,6 +135,12 @@ async function authenticateUser(oauth2Client: any) {
   // Save token to disk
   fs.writeFileSync(TOKEN_PATH, JSON.stringify(tokens));
   console.log('✓ Credentials saved to', TOKEN_PATH);
+  
+  if (tokens.refresh_token) {
+    console.log('✓ Refresh token obtained - can use for automated syncs');
+  } else {
+    console.log('⚠️  No refresh token - you may need to re-authenticate later');
+  }
 }
 
 /**

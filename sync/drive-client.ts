@@ -23,7 +23,7 @@ export class DriveClient {
    */
   async initialize() {
     const auth = await getAuthClient();
-    this.drive = google.drive({ version: 'v3', auth });
+    this.drive = google.drive({ version: 'v3', auth: auth as any });
   }
 
   /**

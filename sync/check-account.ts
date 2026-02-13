@@ -8,7 +8,7 @@ async function checkAccount() {
   console.log('Checking authenticated Google account...\n');
   
   const auth = await getAuthClient();
-  const drive = google.drive({ version: 'v3', auth });
+  const drive = google.drive({ version: 'v3', auth: auth as any });
   
   // Get info about the authenticated user
   const about = await drive.about.get({

@@ -17,6 +17,12 @@ pnpm-debug.log*
 .env
 .env.production
 
+# Google Drive sync - authentication files (NEVER COMMIT THESE!)
+.gdrive-token.json
+credentials.json
+service-account.json
+*-service-account.json
+
 # macOS-specific files
 .DS_Store
 
