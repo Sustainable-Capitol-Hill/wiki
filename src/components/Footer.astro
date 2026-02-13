@@ -1,0 +1,89 @@
+---
+// Custom Footer component with Google Docs edit link
+import LastUpdated from '@astrojs/starlight/components/LastUpdated.astro';
+import Pagination from '@astrojs/starlight/components/Pagination.astro';
+import config from 'virtual:starlight/user-config';
+import { Icon } from '@astrojs/starlight/components';
+
+// Get the driveFileId from the current page's frontmatter
+const driveFileId = Astro.locals.starlightRoute?.entry?.data?.driveFileId;
+
+// Build Google Docs edit URL if we have a Drive file ID
+const editUrl = driveFileId 
+  ? `https://docs.google.com/document/d/${driveFileId}/edit`
+  : null;
+---
+
+<footer class="sl-flex">
+  <div class="meta sl-flex">
+    {editUrl && (
+      <a href={editUrl} class="edit-link" target="_blank" rel="noopener noreferrer">
+        <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+        </svg>
+        Edit in Google Docs
+      </a>
+    )}
+    <LastUpdated />
+  </div>
+  <Pagination />
+
+  {config.credits && (
+    <a class="kudos sl-flex" href="https://starlight.astro.build">
+      <Icon name={'starlight'} /> {Astro.locals.t('builtWithStarlight.label')}
+    </a>
+  )}
+</footer>
+
+<style>
+  @layer starlight.core {
+    footer {
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    .meta {
+      gap: 0.75rem 3rem;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      margin-top: 3rem;
+      font-size: var(--sl-text-sm);
+      color: var(--sl-color-gray-3);
+    }
+    .meta > :global(p:only-child) {
+      margin-inline-start: auto;
+    }
+
+    .edit-link {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      text-decoration: none;
+      color: var(--sl-color-gray-3);
+    }
+    .edit-link:hover {
+      color: var(--sl-color-white);
+    }
+    .edit-link svg {
+      flex-shrink: 0;
+    }
+
+    .kudos {
+      align-items: center;
+      gap: 0.5em;
+      margin: 1.5rem auto;
+      font-size: var(--sl-text-xs);
+      text-decoration: none;
+      color: var(--sl-color-gray-3);
+    }
+    .kudos:hover {
+      color: var(--sl-color-white);
+    }
+  }
+
+  @layer starlight.components {
+    .kudos :global(svg) {
+      color: var(--sl-color-orange);
+    }
+  }
+</style>

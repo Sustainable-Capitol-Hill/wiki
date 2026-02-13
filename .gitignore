@@ -19,3 +19,13 @@ pnpm-debug.log*
 
 # macOS-specific files
 .DS_Store
+
+# Google Drive sync - generated files
+.gdrive-token.json
+sync-state.json
+folder-metadata.json
+.env.local
+
+# Synced content from Google Drive - do not commit
+src/content/docs/
+public/images/
