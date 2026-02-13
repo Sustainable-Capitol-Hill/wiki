@@ -126,6 +126,25 @@ export class DriveClient {
   }
 
   /**
+   * Exports a Google Doc as Markdown
+   */
+  async exportDocAsMarkdown(fileId: string): Promise<string> {
+    if (!this.drive) {
+      throw new Error('Drive client not initialized. Call initialize() first.');
+    }
+
+    const response = await this.drive.files.export(
+      {
+        fileId,
+        mimeType: 'text/markdown',
+      },
+      { responseType: 'text' }
+    );
+
+    return response.data as string;
+  }
+
+  /**
    * Downloads a file (e.g., image) from Drive
    */
   async downloadFile(fileId: string, destPath: string): Promise<void> {

@@ -6,7 +6,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { DriveClient } from './drive-client';
 import type { DriveFile } from './drive-client';
-import { convertDocToMarkdown } from './doc-converter';
+import { convertDocToMarkdown, convertMarkdownDoc } from './doc-converter';
 import { getAuthClient } from './auth';
 import {
   loadState,
@@ -171,25 +171,27 @@ export async function sync(options: SyncOptions = {}) {
       console.log(`  ${status} ${filePath}`);
 
       if (!dryRun) {
-        // Export and convert doc
-        let html: string;
+        // Export both markdown (for content without comments) and HTML (for high-quality images)
+        let markdown: string;
+        let html: string | undefined;
+        
         try {
-          html = await driveClient.exportDocAsHtml(file.id);
+          markdown = await driveClient.exportDocAsMarkdown(file.id);
         } catch (error: any) {
           // Check if the error message contains "too large" - googleapis may format errors differently
           const isTooLargeError = 
             error?.message?.includes('too large to be exported') ||
             error?.response?.data?.error?.errors?.[0]?.reason === 'exportSizeLimitExceeded';
           
-          if (isTooLargeError && file.exportLinks?.['text/html']) {
+          if (isTooLargeError && file.exportLinks?.['text/markdown']) {
             console.log(`    └─ File too large for standard export, trying exportLink...`);
             
             const authClient = await getAuthClient();
             const accessToken = await authClient.getAccessToken();
             
             // Download via exportLink using https
-            html = await new Promise<string>((resolve, reject) => {
-              https.get(file.exportLinks!['text/html'], {
+            markdown = await new Promise<string>((resolve, reject) => {
+              https.get(file.exportLinks!['text/markdown'], {
                 headers: {
                   'Authorization': `Bearer ${accessToken.token}`,
                 },
@@ -209,14 +211,25 @@ export async function sync(options: SyncOptions = {}) {
           }
         }
         
+        // Export HTML for high-quality images (only if document has images in markdown)
+        if (markdown.includes('[image')) {
+          try {
+            html = await driveClient.exportDocAsHtml(file.id);
+          } catch (error: any) {
+            console.warn(`    └─ Could not fetch HTML for images, using markdown images`);
+            // Continue without HTML - will use lower quality markdown images
+          }
+        }
+        
         const author = file.owners?.[0]?.displayName || file.owners?.[0]?.emailAddress;
         
         // Create unique image directory for each document (folder/filename)
         const imageDir = relativePath ? `${relativePath}/${fileName}` : fileName;
         
-        const result = await convertDocToMarkdown({
+        const result = await convertMarkdownDoc({
           fileId: file.id,
           fileName: file.name,
+          markdown,
           html,
           imageDir,
           author,

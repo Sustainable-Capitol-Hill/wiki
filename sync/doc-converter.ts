@@ -19,6 +19,17 @@ export interface ConversionOptions {
   fileIdToPath?: Map<string, string>;  // Mapping of Drive file IDs to wiki paths
 }
 
+export interface MarkdownConversionOptions {
+  fileId: string;
+  fileName: string;
+  markdown: string;
+  html?: string;  // Optional HTML for high-quality images
+  imageDir: string;  // Directory to save images (relative to public/images/)
+  author?: string;
+  modifiedTime: string;
+  fileIdToPath?: Map<string, string>;  // Mapping of Drive file IDs to wiki paths
+}
+
 /**
  * Converts Google Docs HTML to Markdown with frontmatter
  */
@@ -111,8 +122,9 @@ async function processImages(
 
 /**
  * Saves a data URL image to the filesystem
+ * Made public for reuse in markdown conversion
  */
-async function saveDataUrlImage(
+export async function saveDataUrlImage(
   dataUrl: string,
   imageDir: string,
   index: number
@@ -293,4 +305,97 @@ function generateFrontmatter(options: {
  */
 function escapeFrontmatterString(str: string): string {
   return str.replace(/"/g, '\\"');
+}
+
+/**
+ * Converts Google Docs Markdown export to cleaned Markdown with frontmatter
+ * Processes base64 image references and replaces them with local paths
+ * If HTML is provided, uses higher-quality images from HTML instead of markdown
+ */
+export async function convertMarkdownDoc(
+  options: MarkdownConversionOptions
+): Promise<ConversionResult> {
+  const { markdown, html, fileName, imageDir, author, modifiedTime, fileId, fileIdToPath } = options;
+
+  let processedMarkdown = markdown;
+  let imageCount = 0;
+
+  // If HTML is provided, extract high-quality images from it
+  let htmlImages: string[] = [];
+  if (html) {
+    const dom = new JSDOM(html);
+    const images = dom.window.document.querySelectorAll('img');
+    htmlImages = Array.from(images).map(img => img.getAttribute('src') || '');
+  }
+
+  // Pattern to find image reference definitions: [imageN]: <data:image/...>
+  // Google Docs markdown export uses this format for images
+  const imageRefPattern = /\[image(\d+)\]:\s*<data:image\/(\w+);base64,([^>]+)>/g;
+  const imageReplacements = new Map<string, string>();
+
+  // Extract and save all images
+  let match;
+  let imageIndex = 0;
+  while ((match = imageRefPattern.exec(markdown)) !== null) {
+    const imageNum = match[1];
+    const ext = match[2];
+    const base64Data = match[3];
+    
+    // Use HTML image if available (higher quality), otherwise use markdown image
+    const dataUrl = htmlImages[imageIndex] && htmlImages[imageIndex].startsWith('data:')
+      ? htmlImages[imageIndex]
+      : `data:image/${ext};base64,${base64Data}`;
+    
+    try {
+      // Save the image using the same index from the markdown
+      const imgIndex = parseInt(imageNum) - 1; // Convert 1-based to 0-based
+      await saveDataUrlImage(dataUrl, imageDir, imgIndex);
+      
+      // Generate the local image path for markdown
+      const imageUrl = getImageUrlForMarkdown(`${imageDir}/image-${imgIndex}.${ext}`);
+      imageReplacements.set(`image${imageNum}`, imageUrl);
+      imageCount++;
+    } catch (error) {
+      console.warn(`⚠️  Failed to process image${imageNum}:`, error);
+    }
+    
+    imageIndex++;
+  }
+
+  // Remove all image reference definitions from the markdown
+  processedMarkdown = processedMarkdown.replace(/\[image\d+\]:\s*<data:image\/\w+;base64,[^>]+>\n?/g, '');
+
+  // Replace image references in the text: ![alt text][imageN] -> ![](/images/path)
+  // This matches both with and without alt text: ![][imageN] and ![alt][imageN]
+  for (const [imageName, imagePath] of imageReplacements.entries()) {
+    const refPattern = new RegExp(`!\\[[^\\]]*\\]\\[${imageName}\\]`, 'g');
+    processedMarkdown = processedMarkdown.replace(refPattern, `![](${imagePath})`);
+  }
+
+  // Replace Google Drive links with wiki paths
+  if (fileIdToPath) {
+    processedMarkdown = replaceDriveLinks(processedMarkdown, fileIdToPath);
+  }
+
+  // Remove duplicate title from first line if it matches
+  processedMarkdown = removeDuplicateTitle(processedMarkdown, fileName);
+
+  // Clean up markdown
+  processedMarkdown = cleanupMarkdown(processedMarkdown);
+
+  // Generate frontmatter
+  const frontmatter = generateFrontmatter({
+    title: fileName,
+    author,
+    modifiedTime,
+    fileId,
+  });
+
+  // Combine frontmatter and markdown
+  const fullMarkdown = `${frontmatter}\n${processedMarkdown}`;
+
+  return {
+    markdown: fullMarkdown,
+    imageCount,
+  };
 }
