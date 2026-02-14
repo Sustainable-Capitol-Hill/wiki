@@ -59,17 +59,17 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Restore Drive sync cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            src/content/docs/
-            public/images/
-            sync-state.json
-            folder-metadata.json
-          key: drive-sync-${{ github.run_number }}
-          restore-keys: |
-            drive-sync-
+      # - name: Restore Drive sync cache
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: |
+      #       src/content/docs/
+      #       public/images/
+      #       sync-state.json
+      #       folder-metadata.json
+      #     key: drive-sync-${{ github.run_number }}
+      #     restore-keys: |
+      #       drive-sync-
 
       - name: Sync from Google Drive
         id: sync
