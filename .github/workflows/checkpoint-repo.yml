@@ -1,3 +1,5 @@
+# Workaround for the fact that GitHub actions will stop running if a project
+# doesn't have recent commits
 name: Make commit to default branch
 on:
   schedule:
@@ -8,7 +10,7 @@ permissions:
   contents: write
 
 jobs:
-  report:
+  checkpoint:
     runs-on: ubuntu-latest
     steps:
       - name: Generate timestamp
@@ -21,5 +23,6 @@ jobs:
         run: |
           git config --global user.name 'GitHub Action'
           git config --global user.email 'contact@sustainablecapitolhill.org'
-          git commit -am "Checkpoint at $CHECKPOINT"
+          git add .
+          git commit -m "Checkpoint at $CHECKPOINT"
           git push
