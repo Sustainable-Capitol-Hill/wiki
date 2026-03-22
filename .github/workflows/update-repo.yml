@@ -1,0 +1,24 @@
+name: Make commit to default branch
+on:
+  schedule:
+    - cron: "0 0 * * 1" # every Monday at midnight
+
+permissions:
+  contents: write
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate timestamp
+        run: |
+          echo CHECKPOINT="$(date +%s)" >> $GITHUB_ENV
+      - uses: actions/checkout@v3
+      - name: Create checkpoint file
+        run: echo $CHECKPOINT > last-change.checkpoint
+      - name: Commit checkpoint
+        run: |
+          git config --global user.name 'GitHub Action'
+          git config --global user.email 'contact@sustainablecapitolhill.org'
+          git commit -am "Checkpoint at $CHECKPOINT"
+          git push
